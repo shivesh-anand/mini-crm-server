@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
-import orderModel from "../models/orderModel";
-import Customer from "../models/customerModel"; // Import Customer model
 import mongoose from "mongoose";
+import Customer from "../models/customerModel";
+import orderModel from "../models/orderModel";
 
 export const addOrder = async (req: Request, res: Response) => {
   try {
@@ -40,7 +40,7 @@ export const getOrders = async (req: Request, res: Response) => {
 
     let orders;
     if (customerId) {
-      orders = await orderModel.find({ customerId }).populate("customerId"); // Populate to get customer data along with orders
+      orders = await orderModel.find({ customerId }).populate("customerId");
     } else {
       orders = await orderModel.find();
     }

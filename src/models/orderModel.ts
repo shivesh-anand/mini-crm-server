@@ -1,5 +1,5 @@
 import { Schema, Types, model } from "mongoose";
-import Customer from "./customerModel"; // Import Customer model
+import Customer from "./customerModel";
 
 interface IOrder {
   customerId: Schema.Types.ObjectId;

@@ -16,6 +16,7 @@ export const deliveryReceipt = async (req: Request, res: Response) => {
     log.sentAt = new Date();
     await log.save();
 
+    console.log(`Updated log with status: ${status}`);
     res.status(200).json({ status });
   } catch (error) {
     console.error("Error updating delivery status:", error);

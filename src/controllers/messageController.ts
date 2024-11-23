@@ -1,10 +1,12 @@
-import { Request, Response } from "express";
 import axios from "axios";
+import dotenv from "dotenv";
+import { Request, Response } from "express";
 import audienceSegmentModel from "../models/audienceSegmentModel";
-import customerModel from "../models/customerModel";
 import communicationsLogModel from "../models/communicationsLogModel";
+import customerModel from "../models/customerModel";
+dotenv.config();
 
-const DELIVERY_RECEIPT_API_URL = `${process.env.API_URL}/api/delivery-receipt`;
+const DELIVERY_RECEIPT_API_URL = `${process.env.SERVER_URL}/api/delivery-receipt`;
 
 const callDeliveryReceiptApi = async (logId: string) => {
   try {
@@ -22,52 +24,44 @@ export const sendMessages = async (req: Request, res: Response) => {
   const { audienceId, messageBody } = req.body;
 
   if (!messageBody || typeof messageBody !== "string") {
-    console.error("Message body is missing or not a string");
     res.status(400).json({ message: "Message body is required" });
     return;
   }
 
   try {
-    console.log("Fetching audience segment with ID:", audienceId);
     const audience = await audienceSegmentModel.findById(audienceId);
     if (!audience) {
-      console.error("Audience not found:", audienceId);
       res.status(404).json({ message: "Audience not found" });
       return;
     }
 
-    console.log("Fetching customers for audience:", audience.customerIds);
     const customers = await customerModel.find({
       _id: { $in: audience.customerIds },
     });
-
     if (customers.length === 0) {
-      console.error("No customers found for this audience.");
+      res.status(404).json({ message: "No customers found for this audience" });
+      return;
     }
 
-    console.log("Sending messages to customers:", customers);
-
     for (const customer of customers) {
-      const message = `Hi ${customer.name}, ${messageBody}`;
+      try {
+        const message = `Hi ${customer.name}, ${messageBody}`;
+        const log = await communicationsLogModel.create({
+          audienceId,
+          customerId: customer._id,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          campaignId: audienceId,
+          message,
+          status: "PENDING",
+        });
 
-      console.log(`Creating communication log for customer: ${customer.name}`);
-      const log = await communicationsLogModel.create({
-        audienceId,
-        customerId: customer._id,
-        customerName: customer.name,
-        message,
-        status: "PENDING",
-      });
-
-      console.log("Created communication log:", log);
-
-      const { status } = await callDeliveryReceiptApi(log._id.toString());
-
-      console.log(`Updating communication log with status: ${status}`);
-      log.status = status;
-      await log.save();
-
-      console.log(`Communication log updated for customer: ${customer.name}`);
+        const { status } = await callDeliveryReceiptApi(log._id.toString());
+        log.status = status;
+        await log.save();
+      } catch (error) {
+        console.error(`Error processing customer ${customer.name}:`, error);
+      }
     }
 
     res.status(200).json({ message: "Messages sent to queued customers" });

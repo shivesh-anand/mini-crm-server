@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
-import customerModel from "../models/customerModel";
 import audienceSegmentModel from "../models/audienceSegmentModel";
+import customerModel from "../models/customerModel";
 
 const buildQuery = (conditions: any[]) => {
   if (conditions.length === 0) return {};
@@ -51,14 +51,11 @@ export const createAudienceSegment = async (req: Request, res: Response) => {
   try {
     const { name, conditions } = req.body;
 
-    // Build the query dynamically
     const query = buildQuery(conditions);
 
-    // Find matching customers
     const customers = await customerModel.find(query).select("_id");
     const customerIds = customers.map((customer) => customer._id);
 
-    // Calculate the segment size
     const segmentSize = customerIds.length;
 
     const segment = new audienceSegmentModel({

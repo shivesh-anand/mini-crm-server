@@ -1,8 +1,13 @@
 import cors from "cors";
 import dotenv from "dotenv";
 import express from "express";
+import session from "express-session";
+import passport from "passport";
 import "./config/passportConfig";
+import passportConfig from "./config/passportConfig";
+import authenticateUser from "./middlewares/authMiddleware";
 import audienceRoutes from "./routes/audienceRoutes";
+import authRoutes from "./routes/authRoutes";
 import campaignRoutes from "./routes/campaignRoutes";
 import customerRoutes from "./routes/customerRoutes";
 import deliveryRoutes from "./routes/deliveryRoutes";
@@ -14,14 +19,33 @@ dotenv.config();
 const app = express();
 connectDB();
 
-app.use(cors());
-app.use(express.json());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL,
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
+app.use(express.json());
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET as string,
+    resave: false,
+    saveUninitialized: false,
+  })
+);
+app.use(passport.initialize());
+app.use(passport.session());
+
+passportConfig(passport);
+
+app.use("/api", authRoutes);
 app.use("/api", customerRoutes);
 app.use("/api", orderRoutes);
-app.use("/api", audienceRoutes);
-app.use("/api", campaignRoutes);
-app.use("/api", messageRoutes);
+app.use("/api", authenticateUser, audienceRoutes);
+app.use("/api", authenticateUser, campaignRoutes);
+app.use("/api", authenticateUser, messageRoutes);
 app.use("/api", deliveryRoutes);
 
 const PORT = process.env.PORT || 5000;
