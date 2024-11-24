@@ -51,6 +51,12 @@ export const createAudienceSegment = async (req: Request, res: Response) => {
   try {
     const { name, conditions } = req.body;
 
+    if (!name || !conditions) {
+      return res
+        .status(400)
+        .json({ message: "Name and conditions are required" });
+    }
+
     const query = buildQuery(conditions);
 
     const customers = await customerModel.find(query).select("_id");
@@ -76,6 +82,9 @@ export const createAudienceSegment = async (req: Request, res: Response) => {
 export const getAudienceSegments = async (req: Request, res: Response) => {
   try {
     const segments = await audienceSegmentModel.find();
+    if (!segments) {
+      return res.status(404).json({ message: "No audience segments found" });
+    }
     res.status(200).json(segments);
   } catch (error: any) {
     res.status(500).json({ message: error.message });

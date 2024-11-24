@@ -10,7 +10,7 @@ export const addCustomer = async (req: Request, res: Response) => {
     }
 
     const existingCustomer = await customerModel.find({ email });
-    if (existingCustomer.length > 0) {
+    if (existingCustomer) {
       res.status(400).json({ message: "Customer already exists" });
       return;
     }

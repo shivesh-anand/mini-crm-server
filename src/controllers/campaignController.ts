@@ -10,25 +10,20 @@ export const getAllCampaignStats = async (req: Request, res: Response) => {
       audienceSegments.map(async (segment) => {
         const audienceSize = segment.customerIds?.length || 0;
 
-        const stats = await communicationsLogModel.aggregate([
-          {
-            $match: {
-              customerId: { $in: segment.customerIds },
-            },
-          },
-          {
-            $group: {
-              _id: "$status",
-              count: { $sum: 1 },
-            },
-          },
-        ]);
+        const logs = await communicationsLogModel.find({
+          customerId: { $in: segment.customerIds },
+        });
 
-        const sentMessages = stats.find((s) => s._id === "SENT")?.count || 0;
-        const failedMessages =
-          stats.find((s) => s._id === "FAILED")?.count || 0;
-        const pendingMessages =
-          stats.find((s) => s._id === "PENDING")?.count || 0;
+        let sentMessages = 0;
+        let failedMessages = 0;
+        let pendingMessages = 0;
+
+        logs.forEach((log) => {
+          if (log.status === "SENT") sentMessages++;
+          if (log.status === "FAILED") failedMessages++;
+          if (log.status === "PENDING") pendingMessages++;
+        });
+
         const totalMessages = sentMessages + failedMessages + pendingMessages;
 
         return {
