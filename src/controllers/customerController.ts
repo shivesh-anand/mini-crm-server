@@ -9,12 +9,6 @@ export const addCustomer = async (req: Request, res: Response) => {
       return;
     }
 
-    const existingCustomer = await customerModel.find({ email });
-    if (existingCustomer) {
-      res.status(400).json({ message: "Customer already exists" });
-      return;
-    }
-
     const customer = new customerModel(req.body);
     await customer.save();
     res.status(201).json({ message: "Customer added successfully", customer });
