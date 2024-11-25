@@ -24,6 +24,7 @@ app.use(
     origin: process.env.CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
@@ -43,10 +44,11 @@ passportConfig(passport);
 app.use("/api", authRoutes);
 app.use("/api", customerRoutes);
 app.use("/api", orderRoutes);
+app.use("/api", deliveryRoutes);
+
 app.use("/api", authenticateUser, audienceRoutes);
 app.use("/api", authenticateUser, campaignRoutes);
 app.use("/api", authenticateUser, messageRoutes);
-app.use("/api", deliveryRoutes);
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

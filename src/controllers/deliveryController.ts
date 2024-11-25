@@ -2,7 +2,9 @@ import { Request, Response } from "express";
 import communicationsLogModel from "../models/communicationsLogModel";
 
 export const deliveryReceipt = async (req: Request, res: Response) => {
-  const { logId } = req.body;
+  const { logId } = req.params;
+
+  console.log(`Received delivery receipt for log: ${logId}`);
 
   try {
     const log = await communicationsLogModel.findById(logId);

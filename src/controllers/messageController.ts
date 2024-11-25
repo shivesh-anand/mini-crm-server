@@ -56,6 +56,8 @@ export const sendMessages = async (req: Request, res: Response) => {
           status: "PENDING",
         });
 
+        console.log(`Created log for customer ${customer.name}:`, log);
+
         const { status } = await callDeliveryReceiptApi(log._id.toString());
         log.status = status;
         await log.save();
